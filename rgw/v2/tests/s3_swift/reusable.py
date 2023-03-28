@@ -68,22 +68,25 @@ def upload_object(
     user_info,
     append_data=False,
     append_msg=None,
+    skip_io_generator=False,
 ):
     log.info("s3 object name: %s" % s3_object_name)
     s3_object_path = os.path.join(TEST_DATA_PATH, s3_object_name)
     log.info("s3 object path: %s" % s3_object_path)
-    s3_object_size = config.obj_size
-    if append_data is True:
-        data_info = manage_data.io_generator(
-            s3_object_path,
-            s3_object_size,
-            op="append",
-            **{"message": "\n%s" % append_msg},
-        )
-    else:
-        data_info = manage_data.io_generator(s3_object_path, s3_object_size)
-    if data_info is False:
-        TestExecError("data creation failed")
+
+    if not skip_io_generator:
+        s3_object_size = config.obj_size
+        if append_data is True:
+            data_info = manage_data.io_generator(
+                s3_object_path,
+                s3_object_size,
+                op="append",
+                **{"message": "\n%s" % append_msg},
+            )
+        else:
+            data_info = manage_data.io_generator(s3_object_path, s3_object_size)
+        if data_info is False:
+            TestExecError("data creation failed")
     log.info("uploading s3 object: %s" % s3_object_path)
     upload_info = dict({"access_key": user_info["access_key"]}, **data_info)
     s3_obj = s3lib.resource_op(
